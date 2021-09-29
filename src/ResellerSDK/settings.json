@@ -1,0 +1,15 @@
+{
+    "endpoints": {
+        "auth": "user\/login",
+        "user": "user",
+        "invalidate": "user\/invalidate",
+        "refresh": "user\/refresh",
+        "offers": "offers",
+        "categories": "categories",
+        "orders": "orders",
+        "order": "order",
+        "buy": "buy"
+    },
+    "bearerToken": "",
+    "userSecret": ""
+}
