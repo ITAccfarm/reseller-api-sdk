@@ -10,7 +10,9 @@ This is an official [Accfarm](https://accfarm.com/) Reseller SDK. Out of the box
 ### Table of contents
 
 
+* [Installation](#installation)
 * [Getting started](#getting-started)
+* [Order Statuses](#order-statuses)
 * [Methods](#methods)
   * [Authentication](#authentication)
     * [Authenticate](#authenticate)
@@ -24,6 +26,18 @@ This is an official [Accfarm](https://accfarm.com/) Reseller SDK. Out of the box
     * [User](#user)
   * [Buy](#buy)
 * [Callback](#callback)
+
+---
+
+### Installation
+
+Installation via composer:
+`composer require itaccfarm/reseller-api-sdk`
+
+Manual installation:
+1. Download archive 
+2. Unpack and add ResellerSDK to your project
+3. Remove ITAccfarm from namespace and path to where you put ResellerSDK folder
 
 ---
 
@@ -68,6 +82,17 @@ $user = $api->user();
 
 ---
 
+### Order statuses
+- 1: new: 
+- 2: in_progress 
+- 3: complete 
+- 4: canceled 
+- 5: pending 
+- 6: refunded 
+- 7: mispaid 
+
+---
+
 ### Methods
 
 List of all methods:
@@ -88,6 +113,7 @@ List of all methods:
 
 * `$api->getUserSecret(string $type, array $data): string`
 
+---
 
 ### Authentication
 
