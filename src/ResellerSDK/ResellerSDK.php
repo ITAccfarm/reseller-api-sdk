@@ -96,12 +96,12 @@ class ResellerSDK
             'password' => $password,
         ]);
 
-        if (empty($response['token']) || empty($response['user']) || empty($response['user']['secret'])) {
+        if (empty($response['token']) || empty($response['user'])) {
             return false;
         }
 
         $this->bearerToken = $response['token'];
-        $this->userSecret = $response['user']['secret'];
+        $this->userSecret = $response['user']['secret'] ?? '';
 
         $this
             ->setSettingsToken()
