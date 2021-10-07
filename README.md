@@ -18,6 +18,11 @@ This is an official [Accfarm](https://accfarm.com/) Reseller SDK. Out of the box
     * [Authenticate](#authenticate)
     * [Refresh](#refresh)
     * [Invalidate](#invalidate)
+  * [Object](#object)
+    * [Get Token](#get-token)
+    * [Get Secret](#get-secret)
+    * [Set Token](#set-token)
+    * [Set Secret](#set-secret)
   * [Data](#data)
     * [Offers](#offers)
     * [Categories](#categories)
@@ -37,7 +42,7 @@ Installation via composer:
 Manual installation:
 1. Download archive 
 2. Unpack and add ResellerSDK to your project
-3. Remove ITAccfarm from namespace and path to where you put ResellerSDK folder
+3. Remove ITAccfarm from namespace and path to where you put ResellerSDK folder and add your namespace
 
 ---
 
@@ -46,7 +51,6 @@ Manual installation:
 There are only 4 files in this SDK:
 
 * src/ResellerSDK/ResellerSDK.php - Contains all core code and logic
-* src/ResellerSDK/settings.json - Stores bearer token, user secret and endpoints
 * index.php - File used for demonstration (you can delete it)
 * callback_example.php - File used for demonstration (you can delete it)
 
@@ -62,22 +66,33 @@ use ITAccfarm\ResellerSDK\ResellerSDK;
 $api = new ResellerSDK();
 ```
 
-2. Then authenticate with email and password. And check if our credentials are correct.
+2. Then authenticate with email and password, check if our credentials are correct, and then store token and user secret from auth data to your DB, file, config, etc.
 
 ```php
-$success = $api->auth('email@email.com', 'pass');
+$authData = $api->auth('email@email.com', 'pass');
 
-if (!$success) {
+if (empty($success)) {
     throw new Exception('Wrong credentials');
 }
+
+$bearerToken = $authData['bearerToken'];
+$userSecret = $authData['userSecret'];
+
+// Store $userSecret & $bearerToken
+// ...
 ```
 
-3. Then we can make API requests! You can see the list of all methods in [Methods section](#methods).
+3. Then we can make API requests with this object! You can see the list of all methods in [Methods section](#methods).
 
 ```php
 $categories = $api->categories();
 $offers = $api->offers(['product_id' => 4]);
 $user = $api->user();
+```
+
+4. Next time you create an object of that class you can simply pass **bearer token** and **user secret** into the construct method.
+```php
+$api = new ResellerSDK('token', 'secret'); 
 ```
 
 ---
@@ -96,10 +111,9 @@ $user = $api->user();
 ### Methods
 
 List of all methods:
-* `$api->auth(string $email, string $password): bool`
-* `$api->refresh(): bool`
+* `$api->auth(string $email, string $password): ?array`
+* `$api->refresh(): ?string`
 * `$api->invalidate(): bool`
-
 
 * `$api->uesr(): array`
 * `$api->categories(): array`
@@ -107,11 +121,12 @@ List of all methods:
 * `$api->orders(): array`
 * `$api->order(string $orderNumber): array`
 
-
 * `$api->buy(string $type, array $data)`
 
-
-* `$api->getUserSecret(string $type, array $data): string`
+* `$api->getToken(): string`
+* `$api->getSecret(): string`
+* `$api->setToken(string $token): $this`
+* `$api->setSecret(string $secret): $this`
 
 ---
 
@@ -122,38 +137,84 @@ List of all methods:
 **Endpoint:** [https://accfarm.com/api/v1/user/login](https://accfarm.com/api/v1/user/login)  
 **Method:** `$api->auth(string $email, string $password)`  
 **Params:** `string $email, string $password`  
-**Returns:** bool (authentication successful or not)
+**Returns:** ?array `['bearerToken' => 'token', 'userSecret' => 'secret']` or `null`
 
 This method:
 
 1. Attempts authentication on 'user/login' endpoint.
-2. Stores
+2. Stores _bearer token_ to an object.
 
-_bearer token_ to settings.json and to object.
-
-After using this method successfully once _bearer token_ is stored, so you can call any api endpoints after that and don't need to call it every time you want to access some endpoint, until token expires.
-
-I would recommend using it once, like a setup method.
+It is **strongly** suggested to store your token to the database, file or some other way and not to use this method every time when making requests. 
 
 ### Refresh
 
 **Endpoint:** [https://accfarm.com/api/v1/user/refresh](https://accfarm.com/api/v1/user/refresh)  
 **Method:** `$api->refresh();`  
-**Returns: bool \(refresh successful or not\)** null
+**Returns:** string (new token) or `null`
 
 This method:
 
 1. Refreshes token. 
-2. Replaces old token with a new one in settings.json and object.
+2. Replaces old token with a new one in an object.
 
 ### Invalidate
 
 **Endpoint:** [https://accfarm.com/api/v1/user/invalidate](https://accfarm.com/api/v1/user/invalidate)  
 **Method:** `$api->refresh();`  
-**Returns: bool \(refresh successful or not\)** null
+**Returns:** bool (invalidation successful or not)
 
 This method:
-1. Invalidates and deletes token from object and settings.json.
+
+1. Invalidates and deletes token from an object.
+
+---
+
+### Object
+
+### Construct
+
+**Params:** `string $bearerToken = '', string $userSecret = ''`
+```php
+$api = new \ITAccfarm\ResellerSDK\ResellerSDK($bearerToken, $userSecret);
+```
+
+### Get Token
+
+**Method:** `$api->getToken()`  
+**Returns:** string (token from an object)
+
+This method:
+
+1. Returns bearer token from an object.
+
+### Get Secret
+
+**Method:** `$api->getSecret()`  
+**Returns:** string (secret from an object)
+
+This method:
+
+1. Returns user secret from an object.
+
+### Set Token
+
+**Method:** `$api->setToken(string $token)`  
+**Params:** `string $token`
+**Returns:** $this
+
+This method:
+
+1. Sets bearer token to an object.
+
+### Set Secret
+
+**Method:** `$api->setSecret(string $secret)`  
+**Params:** `string $secret`
+**Returns:** $this
+
+This method:
+
+1. Sets user secret to an object.
 
 ---
 

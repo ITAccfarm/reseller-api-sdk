@@ -18,13 +18,6 @@ namespace ITAccfarm\ResellerSDK;
 class ResellerSDK
 {
     /**
-     * Path to current directory
-     *
-     * @var string
-     */
-    private $dirPath;
-
-    /**
      * Base Accfarm api url.
      *
      * @var string
@@ -46,69 +39,49 @@ class ResellerSDK
     private $userSecret;
 
     /**
-     * Settings from settings.json containing following parameters:
-     * ['bearerToken' => '', 'userSecret' => '', 'endpoints' => ['auth' => 'user/login', ...]]
-     *
-     * @var array
-     */
-    private $settings;
-
-    /**
-     * Api endpoints from settings
+     * Api endpoints
      * ['auth' => 'user/login', ...]
      *
      * @var array
      */
-    private $endpoints;
+    private $endpoints = [
+        "auth" => "user/login",
+        "user" => "user",
+        "invalidate" => "user/invalidate",
+        "refresh" => "user/refresh",
+        "offers" => "offers",
+        "categories" => "categories",
+        "orders" => "orders",
+        "order" => "order",
+        "buy" => "buy"
+    ];
 
     /**
      * Api constructor.
      *
-     * 1. Get path to class directory
-     * 2. Get settings.
-     * 3. Set base URL parameter.
-     * 4. Set token parameter.
-     * 5. Set endpoints parameter.
+     * 1. Set base URL parameter.
+     * 2. Set bearer token parameter.
+     * 3. Set user secret parameter.
+     *
+     * @param string $bearerToken
+     * @param string $userSecret
      */
-    public function __construct()
+    public function __construct(string $bearerToken = '', string $userSecret = '')
     {
-        $this->dirPath = dirname(__FILE__) . DIRECTORY_SEPARATOR;
-
-        $this->settings = $this->getFileSettings();
-
         $this->baseUrl = 'https://accfarm.com/api/v1/';
-        $this->userSecret = $this->settings['secret'] ?? '';
-        $this->bearerToken = $this->settings['bearerToken'] ?? '';
-        $this->endpoints = $this->settings['endpoints'];
+
+        $this->bearerToken = $bearerToken ?? '';
+        $this->userSecret = $userSecret ?? '';
     }
 
     /**
-     * Authentication for user. Sets bearer token to settings.json file and to parameter.
+     * Simply returns bearer token.
      *
-     * @param string $email
-     * @param string $password
-     * @return bool
+     * @return string
      */
-    public function auth(string $email, string $password): bool
+    public function getToken(): string
     {
-        $response = $this->authRequest([
-            'email' => $email,
-            'password' => $password,
-        ]);
-
-        if (empty($response['token']) || empty($response['user'])) {
-            return false;
-        }
-
-        $this->bearerToken = $response['token'];
-        $this->userSecret = $response['user']['secret'] ?? '';
-
-        $this
-            ->setSettingsToken()
-            ->setSettingsSecret()
-            ->setFileSettings();
-
-        return true;
+        return $this->bearerToken ?? '';
     }
 
     /**
@@ -116,9 +89,103 @@ class ResellerSDK
      *
      * @return string
      */
-    public function getUserSecret(): string
+    public function getSecret(): string
     {
         return $this->userSecret ?? '';
+    }
+
+    /**
+     * Sets bearer token to object parameters.
+     *
+     * @param string $token
+     * @return ResellerSDK
+     */
+    public function setToken(string $token): ResellerSDK
+    {
+        $this->bearerToken = $token;
+
+        return $this;
+    }
+
+
+    /**
+     * Sets user secret to object parameters.
+     *
+     * @param string $secret
+     * @return ResellerSDK
+     */
+    public function setSecret(string $secret): ResellerSDK
+    {
+        $this->userSecret = $secret;
+
+        return $this;
+    }
+
+    /**
+     * Authentication for user. Returns bearer token and user secret.
+     *
+     * @param string $email
+     * @param string $password
+     * @return array|null
+     */
+    public function auth(string $email, string $password): ?array
+    {
+        $response = $this->authRequest([
+            'email' => $email,
+            'password' => $password,
+        ]);
+
+        if (empty($response['token']) || empty($response['user'])) {
+            return null;
+        }
+
+        $this->bearerToken = $response['token'];
+        $this->userSecret = $response['user']['secret'] ?? '';
+
+        return [
+            'bearerToken' => $this->bearerToken,
+            'userSecret' => $this->userSecret,
+        ];
+    }
+
+    /**
+     * Refresh bearer token. Token has to be present.
+     *
+     * @return string|null
+     */
+    public function refresh(): ?string
+    {
+        if (empty($this->bearerToken)) {
+            return null;
+        }
+
+        $token = $this->refreshTokenRequest();
+
+        if (empty($token)) {
+            return null;
+        }
+
+        $this->bearerToken = $token;
+
+        return $this->bearerToken;
+    }
+
+    /**
+     * Invalidates and unsets token.
+     *
+     * @return bool
+     */
+    public function invalidate(): bool
+    {
+        $success = $this->invalidateTokenRequest();
+
+        if (!$success) {
+            return false;
+        }
+
+        $this->bearerToken = '';
+
+        return true;
     }
 
     /**
@@ -185,58 +252,7 @@ class ResellerSDK
 
         $this->userSecret = $user['secret'];
 
-        $this
-            ->setSettingsSecret()
-            ->setFileSettings();
-
         return $user;
-    }
-
-    /**
-     * Refresh bearer token. Token has to be present.
-     *
-     */
-    public function refresh(): bool
-    {
-        if (empty($this->bearerToken)) {
-            return false;
-        }
-
-        $token = $this->refreshTokenRequest();
-
-        if (empty($token)) {
-            return false;
-        }
-
-        $this->bearerToken = $token;
-
-        $this
-            ->setSettingsToken()
-            ->setFileSettings();
-
-        return true;
-    }
-
-    /**
-     * Invalidates and unsets token.
-     *
-     * @return bool
-     */
-    public function invalidate(): bool
-    {
-        $success = $this->invalidateTokenRequest();
-
-        if (!$success) {
-            return false;
-        }
-
-        $this->bearerToken = '';
-
-        $this
-            ->setSettingsToken()
-            ->setFileSettings();
-
-        return true;
     }
 
     /**
@@ -374,6 +390,46 @@ class ResellerSDK
     }
 
     /**
+     * Post request to 'https://accfarm.com/api/v1/user/refresh'
+     *
+     * @return string
+     */
+    private function refreshTokenRequest(): string
+    {
+        $urn = $this->endpoints['refresh'];
+
+        $response = $this->call('POST', $urn, [
+            'token' => $this->bearerToken,
+        ], false);
+
+        if (!empty($response['error']) || empty($response['token'])) {
+            return '';
+        }
+
+        return $response['token'];
+    }
+
+    /**
+     * Post request to 'https://accfarm.com/api/v1/user/invalidate'
+     *
+     * @return bool
+     */
+    private function invalidateTokenRequest(): bool
+    {
+        $urn = $this->endpoints['invalidate'];
+
+        $response = $this->call('POST', $urn, [
+            'token' => $this->bearerToken,
+        ], false);
+
+        if (empty($response['error']) && !empty($response['msg']) && $response['msg'] == 'Token invalidated') {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get request to 'https://accfarm.com/api/v1/offers'
      *
      * category_id: int
@@ -472,46 +528,6 @@ class ResellerSDK
     }
 
     /**
-     * Post request to 'https://accfarm.com/api/v1/user/refresh'
-     *
-     * @return string
-     */
-    private function refreshTokenRequest(): string
-    {
-        $urn = $this->endpoints['refresh'];
-
-        $response = $this->call('POST', $urn, [
-            'token' => $this->bearerToken,
-        ], false);
-
-        if (!empty($response['error']) || empty($response['token'])) {
-            return '';
-        }
-
-        return $response['token'];
-    }
-
-    /**
-     * Post request to 'https://accfarm.com/api/v1/user/invalidate'
-     *
-     * @return bool
-     */
-    private function invalidateTokenRequest(): bool
-    {
-        $urn = $this->endpoints['invalidate'];
-
-        $response = $this->call('POST', $urn, [
-            'token' => $this->bearerToken,
-        ], false);
-
-        if (empty($response['error']) && !empty($response['msg']) && $response['msg'] == 'Token invalidated') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * @param array $data
      * @return array
      */
@@ -607,57 +623,6 @@ class ResellerSDK
         }
 
         return json_decode($result, true);
-    }
-
-    /**
-     * Gets data from settings.json
-     *
-     * @return array
-     */
-    private function getFileSettings(): array
-    {
-        if (!file_exists($this->dirPath . 'settings.json')) {
-            return [];
-        }
-
-        $settingsJson = file_get_contents($this->dirPath . 'settings.json');
-
-        return json_decode($settingsJson, true) ?? [];
-    }
-
-    /**
-     *  Clears settings.json file and sets new settings data from settings array.
-     *
-     * @return void
-     */
-    private function setFileSettings()
-    {
-        file_put_contents($this->dirPath . 'settings.json', '');
-        file_put_contents($this->dirPath . 'settings.json', json_encode($this->settings, JSON_PRETTY_PRINT));
-    }
-
-    /**
-     * Sets bearerToken to settings array.
-     *
-     * @return $this
-     */
-    private function setSettingsToken(): ResellerSDK
-    {
-        $this->settings['bearerToken'] = $this->bearerToken;
-
-        return $this;
-    }
-
-    /**
-     * Sets userSecret to settings array.
-     *
-     * @return $this
-     */
-    private function setSettingsSecret(): ResellerSDK
-    {
-        $this->settings['userSecret'] = $this->userSecret;
-
-        return $this;
     }
 
     /**

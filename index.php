@@ -24,9 +24,20 @@ $api = new ResellerSDK();
  * ------------------------
  */
 
-$authSuccess = $api->auth('reseller@email.com', 'reseller@email.com');
+$authData = $api->auth('reseller@email.com', 'reseller@email.com');
 //$refreshSuccess = $api->refresh();
 //$invalidateSuccess = $api->invalidate();
+
+if (empty($authData)) {
+    die();
+}
+
+$userSecret = $api->getSecret();
+$bearerToken = $api->getToken();
+
+//$api
+//    ->setSecret('secret')
+//    ->setToken('token');
 
 /*
  * ------------------------
@@ -124,11 +135,3 @@ $api->buy('install', [
     // Option 2: In a file
     //'file' => ['full/path/to/file'],
 ]);
-
-/*
- * ------------------------
- * --------Callback--------
- * ------------------------
- */
-
-$userSecret = $api->getUserSecret();
