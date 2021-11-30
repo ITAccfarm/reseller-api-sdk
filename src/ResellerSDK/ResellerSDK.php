@@ -213,12 +213,12 @@ class ResellerSDK
     /**
      * Return offer data by its id.
      *
-     * @param int $offerId
+     * @param int $id
      * @return array
      */
-    public function offer(int $offerId): array
+    public function offer(int $id): array
     {
-        return $this->getOfferRequest(['offer_id' => $offerId]);
+        return $this->getOfferRequest(['id' => $id]);
     }
 
     /**
@@ -468,9 +468,9 @@ class ResellerSDK
     /**
      * Get request to 'https://accfarm.com/api/v1/offer'
      *
-     * offer_id: int
+     * id: int
      *
-     * Data example: ['offer_id' => 100]
+     * Data example: ['id' => 100]
      *
      * @param array $data
      * @return array
