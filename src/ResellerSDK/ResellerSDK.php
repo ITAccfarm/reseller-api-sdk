@@ -50,6 +50,7 @@ class ResellerSDK
         "invalidate" => "user/invalidate",
         "refresh" => "user/refresh",
         "offers" => "offers",
+        "offer" => "offer",
         "categories" => "categories",
         "orders" => "orders",
         "order" => "order",
@@ -106,7 +107,6 @@ class ResellerSDK
 
         return $this;
     }
-
 
     /**
      * Sets user secret to object parameters.
@@ -211,6 +211,17 @@ class ResellerSDK
     }
 
     /**
+     * Return offer data by its id.
+     *
+     * @param int $offerId
+     * @return array
+     */
+    public function offer(int $offerId): array
+    {
+        return $this->getOfferRequest(['offer_id' => $offerId]);
+    }
+
+    /**
      * Returns all available categories to user.
      *
      * @return array
@@ -221,7 +232,7 @@ class ResellerSDK
     }
 
     /**
-     * Returns all user orders
+     * Returns all user orders.
      *
      * @return array
      */
@@ -231,7 +242,7 @@ class ResellerSDK
     }
 
     /**
-     * Returns all user orders
+     * Returns users order by order number.
      *
      * @param string $orderNumber
      * @return array
@@ -446,6 +457,29 @@ class ResellerSDK
         $urn = $this->endpoints['offers'];
 
         $response = $this->call('GET', $urn, $data);
+
+        if (empty($response)) {
+            return [];
+        }
+
+        return $response;
+    }
+
+    /**
+     * Get request to 'https://accfarm.com/api/v1/offer'
+     *
+     * offer_id: int
+     *
+     * Data example: ['offer_id' => 100]
+     *
+     * @param array $data
+     * @return array
+     */
+    private function getOfferRequest(array $data = []): array
+    {
+        $urn = $this->endpoints['offer'];
+
+        $response = $this->call('GET', $urn, $data, false);
 
         if (empty($response)) {
             return [];

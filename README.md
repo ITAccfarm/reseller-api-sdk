@@ -25,6 +25,7 @@ This is an official [Accfarm](https://accfarm.com/) Reseller SDK. Out of the box
     * [Set Secret](#set-secret)
   * [Data](#data)
     * [Offers](#offers)
+    * [Offer](#offer)
     * [Categories](#categories)
     * [Orders](#orders)
     * [Order](#order)
@@ -240,6 +241,17 @@ This method:
 This method:
 
 1. Return offers with filters.
+
+### Offer
+
+**Endpoint:** [https://accfarm.com/api/v1/offer](https://accfarm.com/api/v1/offer)  
+**Method:** `$api->offer(int $offerId);`  
+**Params:** `int $offerId`  
+**Returns:** array (offer)
+
+This method:
+
+1. Return offer by its id.
 
 ### Categories
 
