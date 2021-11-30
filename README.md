@@ -245,8 +245,8 @@ This method:
 ### Offer
 
 **Endpoint:** [https://accfarm.com/api/v1/offer](https://accfarm.com/api/v1/offer)  
-**Method:** `$api->offer(int $offerId);`  
-**Params:** `int $offerId`  
+**Method:** `$api->offer(int $id);`  
+**Params:** `int $id`  
 **Returns:** array (offer)
 
 This method:
