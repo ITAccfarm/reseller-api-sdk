@@ -642,7 +642,7 @@ class ResellerSDK
             CURLOPT_FRESH_CONNECT => 1,
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_FORBID_REUSE => 1,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => 60,
             CURLOPT_FOLLOWLOCATION => 0,
             CURLOPT_HTTPHEADER => $headers,
         ];
